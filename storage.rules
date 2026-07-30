@@ -1,0 +1,15 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Avatar images: filename is the user's own uid, so only that user can
+    // write their own avatar. Anyone signed in can read (avatars show up
+    // publicly on posts/comments in Community).
+    match /avatars/{userId}.jpg {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+                   && request.auth.uid == userId
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+  }
+}
