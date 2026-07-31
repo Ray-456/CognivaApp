@@ -27,7 +27,7 @@ export type IconName = keyof typeof ICONS;
 
 export default function Icon({
   name,
-  size = 22,
+  size = 23,
   color,
   style,
 }: {
