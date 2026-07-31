@@ -4,7 +4,7 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAwQzaSYFbxaIEnVvHco6gBLgZhbRk1tas",
+  apiKey: "PLACE_HOLDER_KEY",
   authDomain: "cogniva-001.firebaseapp.com",
   databaseURL: "https://cogniva-001-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "cogniva-001",
