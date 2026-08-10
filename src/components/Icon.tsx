@@ -17,7 +17,7 @@ const ICONS = {
   comment: require('../../assets/icons/icon-comment.png'),
   camera: require('../../assets/icons/icon-camera.png'),
   video: require('../../assets/icons/icon-video.png'),
-  add: require('../../assets/icons/icon-add.png'),
+  add: require('../../assets/icons/icon-pencil.png'),
   back: require('../../assets/icons/icon-back.png'),
   search: require('../../assets/icons/icon-search.png'),
   pencil: require('../../assets/icons/icon-pencil.png'),
