@@ -1,11 +1,17 @@
 import React from 'react';
-import { registerRootComponent } from 'expo';
-import AppRoot from './src/screens/HomeScreen';
-
-// If you have an existing root component elsewhere, replace the import above.
+import { NavigationContainer } from '@react-navigation/native';
+import { AuthProvider } from './src/firebase/AuthContext';
+import { ThemeProvider } from './src/theme/colors';
+import RootNavigator from './src/navigation/RootNavigator';
 
 export default function App() {
-  return <AppRoot />;
+  return (
+    <AuthProvider>
+      <ThemeProvider>
+        <NavigationContainer>
+          <RootNavigator />
+        </NavigationContainer>
+      </ThemeProvider>
+    </AuthProvider>
+  );
 }
-
-registerRootComponent(App);
