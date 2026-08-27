@@ -27,6 +27,9 @@ export default function CommunityScreen({ navigation }: any) {
     const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
     const unsubscribe = onSnapshot(q, (snap) => {
       setPosts(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
+    }, (error) => {
+      console.error('Unable to load community posts.', error);
+      setPosts([]);
     });
     return unsubscribe;
   }, []);

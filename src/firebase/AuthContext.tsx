@@ -59,23 +59,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(firebaseUser);
       setEmailVerified(!!firebaseUser?.emailVerified);
 
-      if (firebaseUser) {
-        const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
-        const loadedProfile = snap.exists() ? (snap.data() as Profile) : null;
-        setProfile(loadedProfile);
+      try {
+        if (firebaseUser) {
+          const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
+          const loadedProfile = snap.exists() ? (snap.data() as Profile) : null;
+          setProfile(loadedProfile);
 
-        if (loadedProfile?.role === 'Parent') {
-          const childrenQuery = query(collection(db, 'users', firebaseUser.uid, 'children'), limit(1));
-          const childrenSnap = await getDocs(childrenQuery);
-          setHasChildProfile(!childrenSnap.empty);
+          if (loadedProfile?.role === 'Parent') {
+            const childrenQuery = query(collection(db, 'users', firebaseUser.uid, 'children'), limit(1));
+            const childrenSnap = await getDocs(childrenQuery);
+            setHasChildProfile(!childrenSnap.empty);
+          } else {
+            setHasChildProfile(true);
+          }
         } else {
+          setProfile(null);
           setHasChildProfile(true);
         }
-      } else {
+      } catch (error) {
+        console.error('Unable to load the signed-in user profile.', error);
         setProfile(null);
         setHasChildProfile(true);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
     return unsubscribe;
   }, []);

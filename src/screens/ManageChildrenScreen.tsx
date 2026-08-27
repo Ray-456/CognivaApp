@@ -20,6 +20,9 @@ export default function ManageChildrenScreen({ navigation }: any) {
     const q = query(collection(db, 'users', user.uid, 'children'));
     const unsubscribe = onSnapshot(q, (snap) => {
       setChildren(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
+    }, (error) => {
+      console.error('Unable to load child profiles.', error);
+      setChildren([]);
     });
     return unsubscribe;
   }, [user]);

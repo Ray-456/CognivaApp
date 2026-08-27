@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "bundler",
     "strict": true
-    ,"ignoreDeprecations": "6.0"
   },
   "extends": "./node_modules/expo/tsconfig.base.json"
 }

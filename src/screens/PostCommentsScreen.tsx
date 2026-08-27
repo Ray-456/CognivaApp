@@ -30,7 +30,7 @@ export default function PostCommentsScreen({ route, navigation }: any) {
   useEffect(() => {
     const unsubscribe = onSnapshot(doc(db, 'posts', postId), (snap) => {
       if (snap.exists()) setPost(snap.data() as PostData);
-    });
+    }, (error) => console.error('Unable to load the post.', error));
     return unsubscribe;
   }, [postId]);
 
@@ -38,13 +38,18 @@ export default function PostCommentsScreen({ route, navigation }: any) {
     const q = query(collection(db, 'posts', postId, 'comments'), orderBy('createdAt', 'asc'));
     const unsubscribe = onSnapshot(q, (snap) => {
       setComments(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
+    }, (error) => {
+      console.error('Unable to load comments.', error);
+      setComments([]);
     });
     return unsubscribe;
   }, [postId]);
 
   useEffect(() => {
     if (!user) return;
-    getDoc(doc(db, 'posts', postId, 'likes', user.uid)).then((snap) => setLiked(snap.exists()));
+    getDoc(doc(db, 'posts', postId, 'likes', user.uid))
+      .then((snap) => setLiked(snap.exists()))
+      .catch((error) => console.error('Unable to load like status.', error));
   }, [postId, user]);
 
   const toggleLike = async () => {

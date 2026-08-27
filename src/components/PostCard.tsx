@@ -53,6 +53,9 @@ export default function PostCard({
     );
     const unsubscribe = onSnapshot(q, (snap) => {
       setPreview(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
+    }, (error) => {
+      console.error('Unable to load post comments.', error);
+      setPreview([]);
     });
     return unsubscribe;
   }, [post.id]);

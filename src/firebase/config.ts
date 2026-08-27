@@ -3,8 +3,14 @@ import { getAuth as getFirebaseAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
+const firebaseApiKey = process.env.EXPO_PUBLIC_FIREBASE_API_KEY;
+
+if (!firebaseApiKey) {
+  throw new Error('Missing EXPO_PUBLIC_FIREBASE_API_KEY. Add it to your local .env file.');
+}
+
 const firebaseConfig = {
-  apiKey: "PLACE_HOLDER_KEY",
+  apiKey: firebaseApiKey,
   authDomain: "cogniva-001.firebaseapp.com",
   databaseURL: "https://cogniva-001-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "cogniva-001",
