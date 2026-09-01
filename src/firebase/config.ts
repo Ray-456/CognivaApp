@@ -3,7 +3,7 @@ import { getAuth as getFirebaseAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-const firebaseApiKey = process.env.EXPO_PUBLIC_FIREBASE_API_KEY;
+const firebaseApiKey = (process.env as Record<string, string | undefined>).EXPO_PUBLIC_FIREBASE_API_KEY;
 
 if (!firebaseApiKey) {
   throw new Error('Missing EXPO_PUBLIC_FIREBASE_API_KEY. Add it to your local .env file.');
@@ -22,11 +22,6 @@ const firebaseConfig = {
 // initialize app
 export const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// initialize auth
-// Note: this uses default (in-memory) persistence, not AsyncStorage — on a
-// real device, users will be logged out each time the app fully closes.
-// If you want persistent login on native, swap this for initializeAuth +
-// getReactNativePersistence(AsyncStorage) like the original version did.
 export const auth = getFirebaseAuth(app);
 
 export const db = getFirestore(app);

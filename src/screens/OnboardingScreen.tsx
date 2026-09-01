@@ -31,6 +31,7 @@ export default function OnboardingScreen() {
     if (!user) return;
     setSubmitting(true);
     try {
+      await user.getIdToken(true);
       await addDoc(collection(db, 'users', user.uid, 'children'), {
         name: childName.trim(),
         age: age.trim() || null,
@@ -41,7 +42,13 @@ export default function OnboardingScreen() {
       // and swaps straight into MainTabs, no manual navigation needed here.
       markHasChildProfile();
     } catch (err: any) {
-      Alert.alert('Something went wrong', err.message ?? 'Please try again.');
+      console.error('Unable to save the child profile.', {
+        code: err?.code,
+        message: err?.message,
+        uid: user.uid,
+        path: `users/${user.uid}/children`,
+      });
+      Alert.alert('Could not save child profile', `${err?.code ?? 'unknown-error'}\n${err?.message ?? 'Please try again.'}`);
       setSubmitting(false);
     }
   };

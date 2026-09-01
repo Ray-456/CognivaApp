@@ -61,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       try {
         if (firebaseUser) {
+          await firebaseUser.getIdToken(true);
           const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
           const loadedProfile = snap.exists() ? (snap.data() as Profile) : null;
           setProfile(loadedProfile);
@@ -77,7 +78,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setHasChildProfile(true);
         }
       } catch (error) {
-        console.error('Unable to load the signed-in user profile.', error);
+        console.error('Unable to load the signed-in user profile.', {
+          code: (error as { code?: string })?.code,
+          message: (error as { message?: string })?.message,
+          uid: firebaseUser?.uid,
+        });
         setProfile(null);
         setHasChildProfile(true);
       } finally {
@@ -132,15 +137,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const finishProfileSetup = async (name: string, role: Role) => {
-    if (!user) return;
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+    await currentUser.getIdToken(true);
     const newProfile: Profile = {
-      uid: user.uid,
+      uid: currentUser.uid,
       name,
-      email: user.email ?? '',
+      email: currentUser.email ?? '',
       role,
-      photoURL: user.photoURL ?? null,
+      photoURL: currentUser.photoURL ?? null,
     };
-    await setDoc(doc(db, 'users', user.uid), { ...newProfile, createdAt: serverTimestamp() });
+    await setDoc(doc(db, 'users', currentUser.uid), { ...newProfile, createdAt: serverTimestamp() });
     setProfile(newProfile);
     setHasChildProfile(role !== 'Parent');
   };

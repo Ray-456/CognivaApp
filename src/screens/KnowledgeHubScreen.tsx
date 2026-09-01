@@ -135,7 +135,7 @@ export default function KnowledgeHubScreen({ navigation }: any) {
           <TouchableOpacity key={a.id} onPress={() => navigation.navigate('ArticleDetail', { article: a })}>
             <Card style={styles.articleCard}>
               <View style={[styles.thumb, { backgroundColor: a.tone === 'primary' ? colors.primarySoft : a.tone === 'coral' ? colors.coralSoft : colors.tealSoft }]}>
-                <Icon name="book" size={18} color={colors.ink} />
+                <Text style={{ fontSize: 24 }}>📚</Text>
               </View>
               <View style={{ flex: 1, marginLeft: spacing.sm }}>
                 <Chip label={a.category} tone={a.tone} />
