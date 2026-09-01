@@ -18,6 +18,8 @@ import DailyToolkitScreen from '../screens/DailyToolkitScreen';
 import CommunityScreen from '../screens/CommunityScreen';
 import ManageChildrenScreen from '../screens/ManageChildrenScreen';
 import AddChildScreen from '../screens/AddChildScreen';
+import ArticleDetailScreen from '../screens/ArticleDetailScreen';
+import PostCommentsScreen from '../screens/PostCommentsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -61,6 +63,8 @@ export default function RootNavigator() {
       <Stack.Screen name="Community" component={CommunityScreen} />
       <Stack.Screen name="ManageChildren" component={ManageChildrenScreen} />
       <Stack.Screen name="AddChild" component={AddChildScreen} />
+      <Stack.Screen name="ArticleDetail" component={ArticleDetailScreen} />
+      <Stack.Screen name="PostComments" component={PostCommentsScreen} />
     </Stack.Navigator>
   );
 }
