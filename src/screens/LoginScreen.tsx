@@ -3,10 +3,12 @@ import { View, Text, Image, StyleSheet, TextInput, TouchableOpacity, SafeAreaVie
 import { spacing, radii, useTheme } from '../theme/colors';
 import { useAuth } from '../firebase/AuthContext';
 import { useGoogleSignIn } from '../firebase/useGoogleSignIn';
+import { normalizeAppError, useAppError } from '../components/AppErrorBanner';
 
 export default function LoginScreen({ navigation }: any) {
   const { logIn } = useAuth();
   const { colors } = useTheme();
+  const { showError } = useAppError();
   const { promptGoogleSignIn, requestReady } = useGoogleSignIn();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,7 +24,9 @@ export default function LoginScreen({ navigation }: any) {
       await logIn(email.trim(), password);
       // onAuthStateChanged in AuthProvider handles the redirect automatically.
     } catch (err: any) {
-      Alert.alert('Login failed', err.message ?? 'Something went wrong.');
+      const normalized = normalizeAppError(err, 'Login failed');
+      showError(normalized);
+      Alert.alert(normalized.title, normalized.message);
     } finally {
       setSubmitting(false);
     }
@@ -31,10 +35,15 @@ export default function LoginScreen({ navigation }: any) {
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.bg }]}>
       <View style={styles.content}>
-        <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
-        <Text style={[styles.title, { color: colors.ink }]}>Welcome back</Text>
-        <Text style={[styles.subtitle, { color: colors.inkSoft }]}>Log in to your Cogniva account</Text>
-
+        <View style={styles.topRow}>
+          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Text style={[styles.backButton, { color: colors.primary }]}>← Back</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.popToTop()}>
+            <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+          </TouchableOpacity>
+          <View style={styles.spacer} />
+        </View>
         <TextInput
           style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.ink }]}
           placeholder="Email address"
@@ -85,7 +94,10 @@ export default function LoginScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { flex: 1, paddingHorizontal: spacing.lg, justifyContent: 'center' },
-  logo: { width: 72, height: 72, alignSelf: 'center', marginBottom: spacing.lg },
+  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
+  backButton: { fontSize: 15, fontWeight: '600' },
+  spacer: { width: 56 },
+  logo: { width: 72, height: 72, alignSelf: 'center' },
   title: { fontSize: 26, fontWeight: '700', textAlign: 'center', marginBottom: 4 },
   subtitle: { fontSize: 15, textAlign: 'center', marginBottom: spacing.lg },
   input: { borderWidth: 1, borderRadius: radii.md, padding: spacing.md, fontSize: 16, marginBottom: spacing.sm },

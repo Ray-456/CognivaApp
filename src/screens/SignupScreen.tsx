@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import { spacing, radii, useTheme } from '../theme/colors';
 import { useAuth, Role } from '../firebase/AuthContext';
+import { normalizeAppError, useAppError } from '../components/AppErrorBanner';
 
 const professionalRoles: Role[] = ['Therapist', 'Psychologist'];
 
 export default function SignupScreen({ navigation, route }: any) {
   const { signUp } = useAuth();
   const { colors } = useTheme();
+  const { showError } = useAppError();
   const accountType: 'Parent' | 'Professional' = route.params?.accountType ?? 'Parent';
 
   const [name, setName] = useState('');
@@ -27,7 +29,9 @@ export default function SignupScreen({ navigation, route }: any) {
       // AuthProvider's onAuthStateChanged picks this up and routes to
       // email verification / mandatory child profile / MainTabs as needed.
     } catch (err: any) {
-      Alert.alert('Signup failed', err.message ?? 'Something went wrong.');
+      const normalized = normalizeAppError(err, 'Signup failed');
+      showError(normalized);
+      Alert.alert(normalized.title, normalized.message);
     } finally {
       setSubmitting(false);
     }
@@ -36,10 +40,15 @@ export default function SignupScreen({ navigation, route }: any) {
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.bg }]}>
       <View style={styles.content}>
-        <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
-        <Text style={[styles.title, { color: colors.ink }]}>
-          {accountType === 'Parent' ? 'Create your parent account' : 'Create your professional account'}
-        </Text>
+        <View style={styles.topRow}>
+          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Text style={[styles.backButton, { color: colors.primary }]}>← Back</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.popToTop()}>
+            <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+          </TouchableOpacity>
+          <View style={styles.spacer} />
+        </View>
 
         <TextInput style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.ink }]} placeholder="Full name" placeholderTextColor={colors.inkFaint} value={name} onChangeText={setName} />
         <TextInput style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.ink }]} placeholder="Email address" placeholderTextColor={colors.inkFaint} autoCapitalize="none" keyboardType="email-address" value={email} onChangeText={setEmail} />
@@ -79,7 +88,10 @@ export default function SignupScreen({ navigation, route }: any) {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { flex: 1, paddingHorizontal: spacing.lg, justifyContent: 'center' },
-  logo: { width: 64, height: 64, alignSelf: 'center', marginBottom: spacing.md },
+  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
+  backButton: { fontSize: 15, fontWeight: '600' },
+  spacer: { width: 56 },
+  logo: { width: 64, height: 64, alignSelf: 'center' },
   title: { fontSize: 24, fontWeight: '700', textAlign: 'center', marginBottom: spacing.md },
   input: { borderWidth: 1, borderRadius: radii.md, padding: spacing.md, fontSize: 16, marginBottom: spacing.sm },
   label: { fontSize: 13, fontWeight: '700', marginTop: spacing.xs, marginBottom: spacing.xs },

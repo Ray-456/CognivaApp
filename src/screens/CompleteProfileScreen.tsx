@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import { spacing, radii, useTheme } from '../theme/colors';
 import { useAuth, Role } from '../firebase/AuthContext';
+import { normalizeAppError, useAppError } from '../components/AppErrorBanner';
 
 const roles: Role[] = ['Parent', 'Therapist', 'Psychologist'];
 
-export default function CompleteProfileScreen() {
+export default function CompleteProfileScreen({ navigation }: any) {
   const { colors } = useTheme();
   const { user, finishProfileSetup, logOut } = useAuth();
+  const { showError } = useAppError();
   const [name, setName] = useState(user?.displayName ?? '');
   const [role, setRole] = useState<Role>('Parent');
   const [submitting, setSubmitting] = useState(false);
@@ -21,7 +23,9 @@ export default function CompleteProfileScreen() {
     try {
       await finishProfileSetup(name.trim(), role);
     } catch (err: any) {
-      Alert.alert('Something went wrong', err.message ?? 'Please try again.');
+      const normalized = normalizeAppError(err, 'Profile setup failed');
+      showError(normalized);
+      Alert.alert(normalized.title, normalized.message);
       setSubmitting(false);
     }
   };
@@ -29,11 +33,17 @@ export default function CompleteProfileScreen() {
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.bg }]}>
       <View style={styles.content}>
-        <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+        <View style={styles.topRow}>
+          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Text style={[styles.backButton, { color: colors.primary }]}>← Back</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.popToTop()}>
+            <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+          </TouchableOpacity>
+          <View style={styles.spacer} />
+        </View>
         <Text style={[styles.title, { color: colors.ink }]}>Almost there</Text>
-        <Text style={[styles.subtitle, { color: colors.inkSoft }]}>
-          Signed in as {user?.email}. Just need a couple more details.
-        </Text>
+        <Text style={[styles.subtitle, { color: colors.inkSoft }]}>Signed in as {user?.email}. Just need a couple more details.</Text>
 
         <Text style={[styles.label, { color: colors.ink }]}>Your name</Text>
         <TextInput
@@ -72,7 +82,10 @@ export default function CompleteProfileScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { flex: 1, paddingHorizontal: spacing.lg, justifyContent: 'center' },
-  logo: { width: 64, height: 64, alignSelf: 'center', marginBottom: spacing.md },
+  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
+  backButton: { fontSize: 15, fontWeight: '600' },
+  spacer: { width: 56 },
+  logo: { width: 64, height: 64, alignSelf: 'center' },
   title: { fontSize: 24, fontWeight: '700', textAlign: 'center', marginBottom: 4 },
   subtitle: { fontSize: 14, textAlign: 'center', marginBottom: spacing.lg },
   label: { fontSize: 13, fontWeight: '700', marginBottom: spacing.xs },

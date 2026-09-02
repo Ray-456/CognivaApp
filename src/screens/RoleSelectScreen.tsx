@@ -10,10 +10,13 @@ export default function RoleSelectScreen({ navigation }: any) {
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.bg }]}>
       <View style={styles.content}>
-        <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+        <View style={styles.topRow}>
+          <View style={styles.spacer} />
+          <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+          <View style={styles.spacer} />
+        </View>
         <Text style={[styles.title, { color: colors.ink }]}>Welcome to Cogniva</Text>
         <Text style={[styles.subtitle, { color: colors.inkSoft }]}>How will you be using Cogniva?</Text>
-
         <TouchableOpacity
           style={[styles.optionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
           onPress={() => navigation.navigate('Signup', { accountType: 'Parent' })}
@@ -64,7 +67,9 @@ export default function RoleSelectScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { flex: 1, paddingHorizontal: spacing.lg, justifyContent: 'center' },
-  logo: { width: 72, height: 72, alignSelf: 'center', marginBottom: spacing.md },
+  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: spacing.md },
+  spacer: { width: 48 },
+  logo: { width: 72, height: 72, alignSelf: 'center' },
   title: { fontSize: 26, fontWeight: '700', textAlign: 'center', marginBottom: 4 },
   subtitle: { fontSize: 15, textAlign: 'center', marginBottom: spacing.lg },
   optionCard: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: radii.lg, padding: spacing.md, marginBottom: spacing.sm },

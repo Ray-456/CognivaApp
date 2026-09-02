@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView, Alert, ActivityIndicator } from 'react-native';
 import { spacing, radii, useTheme } from '../theme/colors';
 import { useAuth } from '../firebase/AuthContext';
+import { normalizeAppError, useAppError } from '../components/AppErrorBanner';
 
-export default function VerifyEmailScreen() {
+export default function VerifyEmailScreen({ navigation }: any) {
   const { colors } = useTheme();
   const { user, logOut, resendVerificationEmail, refreshVerificationStatus } = useAuth();
+  const { showError } = useAppError();
   const [checking, setChecking] = useState(false);
   const [resending, setResending] = useState(false);
   const [justSent, setJustSent] = useState(false);
@@ -17,7 +19,9 @@ export default function VerifyEmailScreen() {
       // If still not verified, refreshVerificationStatus won't throw — the
       // screen simply stays visible since emailVerified is still false.
     } catch (err: any) {
-      Alert.alert('Something went wrong', err.message ?? 'Please try again.');
+      const normalized = normalizeAppError(err, 'Verification check failed');
+      showError(normalized);
+      Alert.alert(normalized.title, normalized.message);
     } finally {
       setChecking(false);
     }
@@ -29,7 +33,9 @@ export default function VerifyEmailScreen() {
       await resendVerificationEmail();
       setJustSent(true);
     } catch (err: any) {
-      Alert.alert('Could not resend', err.message ?? 'Please try again in a moment.');
+      const normalized = normalizeAppError(err, 'Could not resend verification email');
+      showError(normalized);
+      Alert.alert(normalized.title, normalized.message);
     } finally {
       setResending(false);
     }
@@ -38,7 +44,15 @@ export default function VerifyEmailScreen() {
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.bg }]}>
       <View style={styles.content}>
-        <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+        <View style={styles.topRow}>
+          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Text style={[styles.backButton, { color: colors.primary }]}>← Back</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.popToTop()}>
+            <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+          </TouchableOpacity>
+          <View style={styles.spacer} />
+        </View>
         <Text style={styles.emoji}>📩</Text>
         <Text style={[styles.title, { color: colors.ink }]}>Verify your email</Text>
         <Text style={[styles.subtitle, { color: colors.inkSoft }]}>
@@ -68,7 +82,10 @@ export default function VerifyEmailScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { flex: 1, paddingHorizontal: spacing.lg, justifyContent: 'center', alignItems: 'center' },
-  logo: { width: 56, height: 56, marginBottom: spacing.md },
+  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: spacing.md },
+  backButton: { fontSize: 15, fontWeight: '600' },
+  spacer: { width: 56 },
+  logo: { width: 56, height: 56 },
   emoji: { fontSize: 40, marginBottom: spacing.sm },
   title: { fontSize: 24, fontWeight: '700', textAlign: 'center', marginBottom: spacing.sm },
   subtitle: { fontSize: 15, textAlign: 'center', lineHeight: 21, marginBottom: spacing.lg },

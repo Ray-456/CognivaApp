@@ -3,6 +3,7 @@ import { View, Text, Image, ScrollView, StyleSheet, TextInput, TouchableOpacity,
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useAuth } from '../firebase/AuthContext';
+import { normalizeAppError, useAppError } from '../components/AppErrorBanner';
 import { spacing, radii, useTheme } from '../theme/colors';
 
 import { CONDITIONS } from '../constants/conditions';
@@ -10,6 +11,7 @@ import { CONDITIONS } from '../constants/conditions';
 export default function OnboardingScreen() {
   const { user, markHasChildProfile } = useAuth();
   const { colors } = useTheme();
+  const { showError } = useAppError();
   const [childName, setChildName] = useState('');
   const [age, setAge] = useState('');
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
@@ -48,7 +50,9 @@ export default function OnboardingScreen() {
         uid: user.uid,
         path: `users/${user.uid}/children`,
       });
-      Alert.alert('Could not save child profile', `${err?.code ?? 'unknown-error'}\n${err?.message ?? 'Please try again.'}`);
+      const normalized = normalizeAppError(err, 'Could not save child profile');
+      showError(normalized);
+      Alert.alert(normalized.title, normalized.message);
       setSubmitting(false);
     }
   };
