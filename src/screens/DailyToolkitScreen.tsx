@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, SafeAreaView, TouchableOpacity } fr
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useAuth } from '../firebase/AuthContext';
+import { useChild } from '../firebase/ChildContext';
 import Card from '../components/Card';
 import Chip from '../components/Chip';
 import { spacing, radii, useTheme } from '../theme/colors';
@@ -20,29 +21,30 @@ function todayKey() {
 export default function DailyToolkitScreen() {
   const { colors, typography } = useTheme();
   const { user } = useAuth();
+  const { selectedChild } = useChild();
   const [completedIds, setCompletedIds] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!user) return;
-    const ref = doc(db, 'users', user.uid, 'toolkitProgress', todayKey());
+    if (!user || !selectedChild) return;
+    const ref = doc(db, 'users', user.uid, 'children', selectedChild.id, 'toolkitProgress', todayKey());
     const unsubscribe = onSnapshot(ref, (snap) => {
       setCompletedIds(snap.exists() ? (snap.data().completedIds ?? []) : []);
     });
     return unsubscribe;
-  }, [user]);
+  }, [user, selectedChild]);
 
   const toggleComplete = async (toolId: string) => {
-    if (!user) return;
+    if (!user || !selectedChild) return;
     const isDone = completedIds.includes(toolId);
     const next = isDone ? completedIds.filter((id) => id !== toolId) : [...completedIds, toolId];
     setCompletedIds(next);
-    await setDoc(doc(db, 'users', user.uid, 'toolkitProgress', todayKey()), { completedIds: next }, { merge: true });
+    await setDoc(doc(db, 'users', user.uid, 'children', selectedChild.id, 'toolkitProgress', todayKey()), { completedIds: next }, { merge: true });
   };
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.bg }]}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={typography.display}>Daily Toolkit</Text>
+        <Text style={typography.display}>{selectedChild ? `${selectedChild.name}'s Toolkit` : 'Daily Toolkit'}</Text>
         <Text style={[typography.body, { marginBottom: spacing.md }]}>
           Routines and strategies you can use today. {completedIds.length} of {tools.length} done today.
         </Text>

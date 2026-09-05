@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, SafeAreaView, TouchableOpacity, TextInput } from 'react-native';
 import Card from '../components/Card';
 import Chip from '../components/Chip';
 import Icon from '../components/Icon';
 import { spacing, radii, useTheme } from '../theme/colors';
+import { useChild } from '../firebase/ChildContext';
 
 const categories = ['All', 'Autism', 'ADHD', 'Learning', 'Language', 'Motor', 'Movement', 'Delay'];
 
@@ -98,14 +99,24 @@ export interface ExpandedState {
 export default function KnowledgeHubScreen({ navigation }: any) {
   const [active, setActive] = useState('All');
   const { colors, typography } = useTheme();
-  const visible = active === 'All' ? articles : articles.filter((a) => a.category === active);
+  const { selectedChild } = useChild();
+  const visible = useMemo(() => {
+    const filtered = active === 'All' ? articles : articles.filter((a) => a.category === active);
+    if (!selectedChild || active !== 'All') return filtered;
+    const conditions = selectedChild.conditions.map((condition) => condition.toLowerCase());
+    return filtered.slice().sort((a, b) => {
+      const aMatches = conditions.includes(a.category.toLowerCase());
+      const bMatches = conditions.includes(b.category.toLowerCase());
+      return Number(bMatches) - Number(aMatches);
+    });
+  }, [active, selectedChild]);
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.bg }]}> 
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={typography.display}>Knowledge Hub</Text>
         <Text style={[typography.body, { marginBottom: spacing.md }]}>
-          Evidence-based guides, reviewed by specialists.
+          {selectedChild ? `Guides for ${selectedChild.name}, plus the full library.` : 'Evidence-based guides, reviewed by specialists.'}
         </Text>
 
         <View style={[styles.searchBar, { backgroundColor: colors.surface, borderColor: colors.border }]}> 

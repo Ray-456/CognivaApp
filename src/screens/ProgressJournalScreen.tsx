@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, SafeAreaView, TouchableOpacity, TextInput, Alert } from 'react-native';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, limit, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, limit } from 'firebase/firestore';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { db } from '../firebase/config';
 import { useAuth } from '../firebase/AuthContext';
+import { useChild } from '../firebase/ChildContext';
 import Card from '../components/Card';
 import { spacing, radii, useTheme } from '../theme/colors';
 
@@ -29,6 +30,7 @@ function startOfWeek() {
 export default function ProgressJournalScreen() {
   const { colors, typography } = useTheme();
   const { user } = useAuth();
+  const { selectedChild } = useChild();
   const [entries, setEntries] = useState<Entry[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [mood, setMood] = useState<number | null>(null);
@@ -37,13 +39,13 @@ export default function ProgressJournalScreen() {
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
-    const q = query(collection(db, 'users', user.uid, 'journalEntries'), orderBy('createdAt', 'desc'), limit(60));
+    if (!user || !selectedChild) return;
+    const q = query(collection(db, 'users', user.uid, 'children', selectedChild.id, 'journalEntries'), orderBy('createdAt', 'desc'), limit(60));
     const unsubscribe = onSnapshot(q, (snap) => {
       setEntries(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
     });
     return unsubscribe;
-  }, [user]);
+  }, [user, selectedChild]);
 
   const weekStart = useMemo(() => startOfWeek(), []);
   const entriesThisWeek = entries.filter((e) => e.createdAt?.toDate && e.createdAt.toDate() >= weekStart);
@@ -72,10 +74,10 @@ export default function ProgressJournalScreen() {
       Alert.alert('Pick a mood', "Select how today's gone before saving.");
       return;
     }
-    if (!user) return;
+    if (!user || !selectedChild) return;
     setSaving(true);
     try {
-      await addDoc(collection(db, 'users', user.uid, 'journalEntries'), {
+      await addDoc(collection(db, 'users', user.uid, 'children', selectedChild.id, 'journalEntries'), {
         mood,
         note: note.trim(),
         createdAt: serverTimestamp(),
@@ -94,8 +96,7 @@ export default function ProgressJournalScreen() {
     if (!user) return;
     setExporting(true);
     try {
-      const childrenSnap = await getDocs(collection(db, 'users', user.uid, 'children'));
-      const childNames = childrenSnap.docs.map((d) => d.data().name).join(', ') || 'your child';
+      const childNames = selectedChild?.name || 'your child';
 
       const rows = entries
         .slice()

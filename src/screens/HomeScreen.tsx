@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
-import { collection, query, where, onSnapshot, doc, limit } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import Card from '../components/Card';
 import { Avatar } from '../components/Chip';
 import { spacing, radii, useTheme } from '../theme/colors';
 import { useAuth } from '../firebase/AuthContext';
 import Icon from '../components/Icon';
+import ChildSwitcher from '../components/ChildSwitcher';
+import { useChild } from '../firebase/ChildContext';
 
 const TOOLKIT_ITEM_COUNT = 3;
 
@@ -24,24 +26,20 @@ function startOfWeek() {
 export default function HomeScreen({ navigation }: any) {
   const { colors, typography } = useTheme();
   const { user, profile } = useAuth();
-  const [childName, setChildName] = useState<string | null>(null);
+  const { selectedChild } = useChild();
   const [completedToday, setCompletedToday] = useState(0);
   const [entriesThisWeek, setEntriesThisWeek] = useState(0);
   const [avgMood, setAvgMood] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!user) return;
-    const childrenQuery = query(collection(db, 'users', user.uid, 'children'), limit(1));
-    const unsubChildren = onSnapshot(childrenQuery, (snap) => {
-      setChildName(snap.empty ? null : (snap.docs[0].data().name ?? null));
-    });
+    if (!user || !selectedChild) return;
 
-    const toolkitRef = doc(db, 'users', user.uid, 'toolkitProgress', todayKey());
+    const toolkitRef = doc(db, 'users', user.uid, 'children', selectedChild.id, 'toolkitProgress', todayKey());
     const unsubToolkit = onSnapshot(toolkitRef, (snap) => {
       setCompletedToday(snap.exists() ? (snap.data().completedIds?.length ?? 0) : 0);
     });
 
-    const journalQuery = query(collection(db, 'users', user.uid, 'journalEntries'), where('createdAt', '>=', startOfWeek()));
+    const journalQuery = query(collection(db, 'users', user.uid, 'children', selectedChild.id, 'journalEntries'), where('createdAt', '>=', startOfWeek()));
     const unsubJournal = onSnapshot(journalQuery, (snap) => {
       setEntriesThisWeek(snap.size);
       if (snap.size > 0) {
@@ -53,11 +51,10 @@ export default function HomeScreen({ navigation }: any) {
     });
 
     return () => {
-      unsubChildren();
       unsubToolkit();
       unsubJournal();
     };
-  }, [user]);
+  }, [user, selectedChild]);
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.bg }]}> 
@@ -65,11 +62,14 @@ export default function HomeScreen({ navigation }: any) {
         <View style={styles.header}>
           <View>
             <Text style={typography.caption}>GOOD MORNING</Text>
-            <Text style={typography.display}>{childName ? `Here's ${childName}'s day` : 'Your day at a glance'}</Text>
+            <Text style={typography.display}>{selectedChild ? `Here's ${selectedChild.name}'s day` : 'Your day at a glance'}</Text>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-            <Avatar initials={(profile?.name ?? '?').slice(0, 2).toUpperCase()} photoURL={profile?.photoURL} />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <ChildSwitcher />
+            <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+              <Avatar initials={(profile?.name ?? '?').slice(0, 2).toUpperCase()} photoURL={profile?.photoURL} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <Card>
@@ -130,6 +130,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { padding: spacing.lg },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.md },
+  headerActions: { alignItems: 'flex-end', gap: spacing.sm },
   cardTitle: { fontSize: 16, fontWeight: '700', marginTop: 4, marginBottom: 2 },
   assistantCard: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: radii.lg, padding: spacing.md, marginBottom: spacing.md,
