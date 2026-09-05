@@ -20,6 +20,8 @@ import ManageChildrenScreen from '../screens/ManageChildrenScreen';
 import AddChildScreen from '../screens/AddChildScreen';
 import ArticleDetailScreen from '../screens/ArticleDetailScreen';
 import PostCommentsScreen from '../screens/PostCommentsScreen';
+import WellbeingScreen from '../screens/WellbeingScreen';
+import BreathingExerciseScreen from '../screens/BreathingExerciseScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -65,6 +67,8 @@ export default function RootNavigator() {
       <Stack.Screen name="AddChild" component={AddChildScreen} />
       <Stack.Screen name="ArticleDetail" component={ArticleDetailScreen} />
       <Stack.Screen name="PostComments" component={PostCommentsScreen} />
+      <Stack.Screen name="Wellbeing" component={WellbeingScreen} />
+      <Stack.Screen name="BreathingExercise" component={BreathingExerciseScreen} />
     </Stack.Navigator>
   );
 }

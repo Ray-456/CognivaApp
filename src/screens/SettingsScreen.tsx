@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, SafeAreaView, TouchableOpacity, Switch, Alert, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../firebase/config';
+import { uploadImageToCloudinary } from '../media/cloudinary';
 import Card from '../components/Card';
 import { Avatar } from '../components/Chip';
 import Icon from '../components/Icon';
@@ -32,11 +31,7 @@ export default function SettingsScreen({ navigation }: any) {
 
     setUploading(true);
     try {
-      const response = await fetch(result.assets[0].uri);
-      const blob = await response.blob();
-      const fileRef = ref(storage, `avatars/${user.uid}.jpg`);
-      await uploadBytes(fileRef, blob);
-      const url = await getDownloadURL(fileRef);
+      const url = await uploadImageToCloudinary(result.assets[0].uri);
       await updateProfilePhoto(url);
     } catch (err: any) {
       Alert.alert('Upload failed', err.message ?? 'Please try again.');
@@ -87,7 +82,13 @@ export default function SettingsScreen({ navigation }: any) {
         </View>
 
         {rows.map((r) => (
-          <TouchableOpacity key={r} onPress={() => r === 'Child profiles' && navigation.navigate('ManageChildren')}>
+          <TouchableOpacity
+            key={r}
+            onPress={() => {
+              if (r === 'Child profiles') navigation.navigate('ManageChildren');
+              if (r === 'Parent wellbeing') navigation.navigate('Wellbeing');
+            }}
+          >
             <Card>
               <Text style={[styles.rowTitle, { color: colors.ink }]}>{r}</Text>
             </Card>

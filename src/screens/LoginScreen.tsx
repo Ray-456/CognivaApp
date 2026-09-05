@@ -4,6 +4,7 @@ import { spacing, radii, useTheme } from '../theme/colors';
 import { useAuth } from '../firebase/AuthContext';
 import { useGoogleSignIn } from '../firebase/useGoogleSignIn';
 import { normalizeAppError, useAppError } from '../components/AppErrorBanner';
+import { isValidEmail } from '../utils/validation';
 
 export default function LoginScreen({ navigation }: any) {
   const { logIn } = useAuth();
@@ -17,6 +18,10 @@ export default function LoginScreen({ navigation }: any) {
   const handleLogin = async () => {
     if (!email.trim() || !password) {
       Alert.alert('Missing info', 'Enter your email and password.');
+      return;
+    }
+    if (!isValidEmail(email)) {
+      showError({ title: 'Check your email', message: "That doesn't look like a valid email address — check for typos or extra spaces.", severity: 'warning' });
       return;
     }
     setSubmitting(true);

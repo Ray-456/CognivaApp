@@ -3,6 +3,7 @@ import { View, Text, Image, StyleSheet, TextInput, TouchableOpacity, SafeAreaVie
 import { spacing, radii, useTheme } from '../theme/colors';
 import { useAuth, Role } from '../firebase/AuthContext';
 import { normalizeAppError, useAppError } from '../components/AppErrorBanner';
+import { isValidEmail } from '../utils/validation';
 
 const professionalRoles: Role[] = ['Therapist', 'Psychologist'];
 
@@ -21,6 +22,10 @@ export default function SignupScreen({ navigation, route }: any) {
   const handleSignup = async () => {
     if (!name.trim() || !email.trim() || password.length < 6) {
       Alert.alert('Check your details', 'Name, email, and a password of at least 6 characters are required.');
+      return;
+    }
+    if (!isValidEmail(email)) {
+      showError({ title: 'Check your email', message: "That doesn't look like a valid email address — check for typos or extra spaces.", severity: 'warning' });
       return;
     }
     setSubmitting(true);

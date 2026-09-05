@@ -6,7 +6,7 @@ import { normalizeAppError, useAppError } from '../components/AppErrorBanner';
 
 const roles: Role[] = ['Parent', 'Therapist', 'Psychologist'];
 
-export default function CompleteProfileScreen({ navigation }: any) {
+export default function CompleteProfileScreen() {
   const { colors } = useTheme();
   const { user, finishProfileSetup, logOut } = useAuth();
   const { showError } = useAppError();
@@ -34,12 +34,10 @@ export default function CompleteProfileScreen({ navigation }: any) {
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.bg }]}>
       <View style={styles.content}>
         <View style={styles.topRow}>
-          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <TouchableOpacity onPress={logOut} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <Text style={[styles.backButton, { color: colors.primary }]}>← Back</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.popToTop()}>
-            <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
-          </TouchableOpacity>
+          <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
           <View style={styles.spacer} />
         </View>
         <Text style={[styles.title, { color: colors.ink }]}>Almost there</Text>

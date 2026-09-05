@@ -1,7 +1,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth as getFirebaseAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+import { getFunctions } from 'firebase/functions';
 
 const firebaseApiKey = (process.env as Record<string, string | undefined>).EXPO_PUBLIC_FIREBASE_API_KEY;
 
@@ -25,4 +25,4 @@ export const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const auth = getFirebaseAuth(app);
 
 export const db = getFirestore(app);
-export const storage = getStorage(app);
+export const functions = getFunctions(app);

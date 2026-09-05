@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, SafeAreaView, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase/config';
 import { spacing, radii, useTheme } from '../theme/colors';
 import Icon from '../components/Icon';
 
@@ -13,18 +15,29 @@ const initialMessages: Message[] = [
   },
 ];
 
+const chatWithAssistant = httpsCallable<{ messages: { from: string; text: string }[] }, { reply: string }>(functions, 'chatWithAssistant');
+
 export default function AIAssistantScreen({ navigation }: any) {
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState('');
+  const [sending, setSending] = useState(false);
   const { colors } = useTheme();
 
-  const send = () => {
-    if (!input.trim()) return;
-    const userMsg: Message = { id: Date.now().toString(), from: 'user', text: input };
-    setMessages((prev) => [...prev, userMsg]);
+  const send = async () => {
+    if (!input.trim() || sending) return;
+    const userMsg: Message = { id: Date.now().toString(), from: 'user', text: input.trim() };
+    const nextMessages = [...messages, userMsg];
+    setMessages(nextMessages);
     setInput('');
-    // Wire this up to your backend (e.g. a Cloud Function calling the OpenAI API)
-    // rather than calling the model directly from the client.
+    setSending(true);
+    try {
+      const result = await chatWithAssistant({ messages: nextMessages.map((m) => ({ from: m.from, text: m.text })) });
+      setMessages((prev) => [...prev, { id: Date.now().toString() + '-a', from: 'assistant', text: result.data.reply }]);
+    } catch (err: any) {
+      setMessages((prev) => [...prev, { id: Date.now().toString() + '-err', from: 'assistant', text: "Sorry, I couldn't respond just now. Please try again in a moment." }]);
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -43,6 +56,11 @@ export default function AIAssistantScreen({ navigation }: any) {
             <Text style={m.from === 'user' ? styles.userText : [styles.assistantText, { color: colors.ink }]}>{m.text}</Text>
           </View>
         ))}
+        {sending && (
+          <View style={[styles.bubble, styles.assistantBubble, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <ActivityIndicator size="small" color={colors.primary} />
+          </View>
+        )}
       </ScrollView>
       <View style={styles.inputRow}>
         <TextInput
@@ -52,9 +70,10 @@ export default function AIAssistantScreen({ navigation }: any) {
           value={input}
           onChangeText={setInput}
           onSubmitEditing={send}
+          editable={!sending}
         />
-        <TouchableOpacity style={[styles.sendButton, { backgroundColor: colors.primary }]} onPress={send}>
-          <Text style={styles.sendButtonText}>Send</Text>
+        <TouchableOpacity style={[styles.sendButton, { backgroundColor: colors.primary }]} onPress={send} disabled={sending}>
+          <Text style={styles.sendButtonText}>{sending ? '…' : 'Send'}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

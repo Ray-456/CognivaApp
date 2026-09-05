@@ -42,7 +42,9 @@ export default function ArticleDetailScreen({ route, navigation }: ArticleDetail
 
         {/* Footer note */}
         <View style={[styles.footer, { backgroundColor: colors.primarySoft, borderLeftColor: colors.primary }]}> 
-          <Text style={[typography.caption, { color: colors.inkSoft }]}>💡 If you have concerns, speak with your child's pediatrician or a specialist.</Text>
+          <Text style={[typography.caption, { color: colors.inkSoft }]}>
+            💡 {article.footerNote ?? "If you have concerns, speak with your child's pediatrician or a specialist."}
+          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>

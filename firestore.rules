@@ -11,6 +11,18 @@ service cloud.firestore {
       match /children/{childId} {
         allow read, create, update, delete: if request.auth != null && request.auth.uid == userId;
       }
+
+      match /toolkitProgress/{dateKey} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /journalEntries/{entryId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /wellbeingCheckins/{checkinId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
 
     match /posts/{postId} {

@@ -1,14 +1,63 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+import { collection, query, where, onSnapshot, doc, limit } from 'firebase/firestore';
+import { db } from '../firebase/config';
 import Card from '../components/Card';
 import { Avatar } from '../components/Chip';
 import { spacing, radii, useTheme } from '../theme/colors';
 import { useAuth } from '../firebase/AuthContext';
 import Icon from '../components/Icon';
 
+const TOOLKIT_ITEM_COUNT = 3;
+
+function todayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function startOfWeek() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - d.getDay());
+  return d;
+}
+
 export default function HomeScreen({ navigation }: any) {
   const { colors, typography } = useTheme();
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
+  const [childName, setChildName] = useState<string | null>(null);
+  const [completedToday, setCompletedToday] = useState(0);
+  const [entriesThisWeek, setEntriesThisWeek] = useState(0);
+  const [avgMood, setAvgMood] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    const childrenQuery = query(collection(db, 'users', user.uid, 'children'), limit(1));
+    const unsubChildren = onSnapshot(childrenQuery, (snap) => {
+      setChildName(snap.empty ? null : (snap.docs[0].data().name ?? null));
+    });
+
+    const toolkitRef = doc(db, 'users', user.uid, 'toolkitProgress', todayKey());
+    const unsubToolkit = onSnapshot(toolkitRef, (snap) => {
+      setCompletedToday(snap.exists() ? (snap.data().completedIds?.length ?? 0) : 0);
+    });
+
+    const journalQuery = query(collection(db, 'users', user.uid, 'journalEntries'), where('createdAt', '>=', startOfWeek()));
+    const unsubJournal = onSnapshot(journalQuery, (snap) => {
+      setEntriesThisWeek(snap.size);
+      if (snap.size > 0) {
+        const total = snap.docs.reduce((sum, d) => sum + (d.data().mood ?? 0), 0);
+        setAvgMood(total / snap.size);
+      } else {
+        setAvgMood(null);
+      }
+    });
+
+    return () => {
+      unsubChildren();
+      unsubToolkit();
+      unsubJournal();
+    };
+  }, [user]);
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.bg }]}> 
@@ -16,7 +65,7 @@ export default function HomeScreen({ navigation }: any) {
         <View style={styles.header}>
           <View>
             <Text style={typography.caption}>GOOD MORNING</Text>
-            <Text style={typography.display}>Here's Amara's day</Text>
+            <Text style={typography.display}>{childName ? `Here's ${childName}'s day` : 'Your day at a glance'}</Text>
           </View>
           <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
             <Avatar initials={(profile?.name ?? '?').slice(0, 2).toUpperCase()} photoURL={profile?.photoURL} />
@@ -24,14 +73,23 @@ export default function HomeScreen({ navigation }: any) {
         </View>
 
         <Card>
-          <Text style={typography.caption}>UPCOMING APPOINTMENT</Text>
-          <Text style={[styles.cardTitle, { color: colors.ink }]}>Occupational therapy — Thu, 3:00 PM</Text>
+          <Text style={typography.caption}>TODAY'S ROUTINE</Text>
+          <Text style={[styles.cardTitle, { color: colors.ink }]}>Daily Toolkit progress</Text>
+          <Text style={[typography.body, { color: colors.inkSoft }]}>
+            {completedToday} of {TOOLKIT_ITEM_COUNT} routines completed today
+          </Text>
         </Card>
 
         <Card>
-          <Text style={typography.caption}>TODAY'S ROUTINE</Text>
-          <Text style={[styles.cardTitle, { color: colors.ink }]}>Morning transition checklist</Text>
-          <Text style={[typography.body, { color: colors.inkSoft }]}>3 of 5 steps completed</Text>
+          <Text style={typography.caption}>THIS WEEK</Text>
+          <Text style={[styles.cardTitle, { color: colors.ink }]}>
+            {entriesThisWeek > 0
+              ? `${entriesThisWeek} journal ${entriesThisWeek === 1 ? 'entry' : 'entries'} logged`
+              : 'No journal entries yet this week'}
+          </Text>
+          <Text style={[typography.body, { color: colors.inkSoft }]}>
+            {avgMood ? `Average mood: ${avgMood.toFixed(1)}/5` : 'Log a mood in the Journal to see a trend here'}
+          </Text>
         </Card>
 
         <TouchableOpacity onPress={() => navigation.navigate('AIAssistant')}>
