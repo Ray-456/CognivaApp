@@ -60,9 +60,11 @@ export default function HomeScreen({ navigation }: any) {
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.bg }]}> 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          <View>
+          <View style={styles.headerTitleBlock}>
             <Text style={typography.caption}>GOOD MORNING</Text>
-            <Text style={typography.display}>{selectedChild ? `Here's ${selectedChild.name}'s day` : 'Your day at a glance'}</Text>
+            <Text numberOfLines={2} style={[typography.display, styles.headerTitle]}>
+              {selectedChild ? `Here's ${selectedChild.name}'s day` : 'Your day at a glance'}
+            </Text>
           </View>
           <View style={styles.headerActions}>
             <ChildSwitcher />
@@ -96,9 +98,9 @@ export default function HomeScreen({ navigation }: any) {
           <View style={[styles.assistantCard, { backgroundColor: colors.primary }]}> 
             <View>
               <Text style={styles.assistantTitle}>Ask the AI Assistant</Text>
-              <Text style={styles.assistantBody}>Get a supportive answer to a question, any time.</Text>
-            </View>
-            <Text style={styles.assistantArrow}>→</Text>
+                <Text style={[styles.assistantBody, { color: colors.primarySoft }]}>Get a supportive answer to a question, any time.</Text>
+              </View>
+              <Text style={[styles.assistantArrow, { color: colors.surface }]}>→</Text>
           </View>
         </TouchableOpacity>
 
@@ -129,15 +131,17 @@ export default function HomeScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { padding: spacing.lg },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.md },
-  headerActions: { alignItems: 'flex-end', gap: spacing.sm },
+  header: { marginBottom: spacing.md },
+  headerTitleBlock: { marginBottom: spacing.sm },
+  headerTitle: { flexShrink: 1 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   cardTitle: { fontSize: 16, fontWeight: '700', marginTop: 4, marginBottom: 2 },
   assistantCard: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: radii.lg, padding: spacing.md, marginBottom: spacing.md,
   },
   assistantTitle: { color: '#fff', fontWeight: '700', fontSize: 16, marginBottom: 2 },
-  assistantBody: { color: '#D9D5FA', fontSize: 13 },
-  assistantArrow: { color: '#fff', fontSize: 20, fontWeight: '700' },
+  assistantBody: { fontSize: 13 },
+  assistantArrow: { fontSize: 20, fontWeight: '700' },
   quickRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
   quickButton: {
     flex: 1, alignItems: 'center', borderRadius: radii.md, borderWidth: 1, paddingVertical: spacing.sm,

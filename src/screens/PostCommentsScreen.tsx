@@ -6,6 +6,7 @@ import { useAuth, Role } from '../firebase/AuthContext';
 import Chip, { Avatar } from '../components/Chip';
 import Icon from '../components/Icon';
 import { spacing, radii, useTheme } from '../theme/colors';
+import Card from '../components/Card';
 
 type Comment = { id: string; authorId: string; authorName: string; authorPhotoURL?: string | null; text: string };
 type PostData = { authorName: string; authorRole: Role; authorPhotoURL?: string | null; text: string; likeCount: number; commentCount: number };
@@ -96,7 +97,7 @@ export default function PostCommentsScreen({ route, navigation }: any) {
         contentContainerStyle={{ padding: spacing.lg }}
         ListHeaderComponent={
           post ? (
-            <View style={[styles.originalPost, { borderBottomColor: colors.divider }]}>
+            <Card style={styles.originalPost}>
               <View style={styles.postHeader}>
                 <Avatar initials={post.authorName.split(' ').map((n) => n[0]).join('')} tone={roleTone[post.authorRole]} photoURL={post.authorPhotoURL} />
                 <View style={{ marginLeft: spacing.sm, flex: 1 }}>
@@ -118,7 +119,7 @@ export default function PostCommentsScreen({ route, navigation }: any) {
               <Text style={[styles.commentsLabel, { color: colors.inkFaint }]}>
                 {comments.length > 0 ? `${comments.length} comment${comments.length === 1 ? '' : 's'}` : 'Comments'}
               </Text>
-            </View>
+            </Card>
           ) : null
         }
         renderItem={({ item }) => (
@@ -126,7 +127,7 @@ export default function PostCommentsScreen({ route, navigation }: any) {
             <Avatar initials={item.authorName.slice(0, 2).toUpperCase()} tone="neutral" photoURL={item.authorPhotoURL} />
             <View style={{ marginLeft: spacing.sm, flex: 1 }}>
               <Text style={[styles.commentName, { color: colors.ink }]}>{item.authorName}</Text>
-              <Text style={[styles.commentText, { color: colors.inkSoft }]}>{item.text}</Text>
+              <Text style={[styles.commentText, { color: colors.ink }]}>{item.text}</Text>
             </View>
           </View>
         )}
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
   backRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   actionRow: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 2 },
   headerTitle: { fontWeight: '700', fontSize: 16 },
-  originalPost: { borderBottomWidth: 1, paddingBottom: spacing.md, marginBottom: spacing.md },
+  originalPost: { marginBottom: spacing.md },
   postHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm },
   postName: { fontWeight: '700', fontSize: 15, marginBottom: 4 },
   postText: { fontSize: 15, lineHeight: 21, marginBottom: spacing.sm },

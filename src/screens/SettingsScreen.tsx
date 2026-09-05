@@ -74,10 +74,12 @@ export default function SettingsScreen({ navigation }: any) {
         </Card>
 
         <View style={[styles.premiumCard, { backgroundColor: colors.ink }]}> 
-          <Text style={styles.premiumTitle}>Cogniva Premium</Text>
-          <Text style={styles.premiumBody}>Unlock full AI guidance, advanced analytics, and unlimited reports.</Text>
+          <Text style={[styles.premiumTitle, { color: colors.bg }]}>Cogniva Premium</Text>
+          <Text style={[styles.premiumBody, { color: colors.surface }]}>
+            Unlock full AI guidance, advanced analytics, and unlimited reports.
+          </Text>
           <TouchableOpacity style={[styles.upgradeButton, { backgroundColor: colors.primary }]}> 
-            <Text style={styles.upgradeButtonText}>Upgrade</Text>
+            <Text style={[styles.upgradeButtonText, { color: colors.surface }]}>Upgrade</Text>
           </TouchableOpacity>
         </View>
 
@@ -119,10 +121,10 @@ const styles = StyleSheet.create({
   profileName: { fontSize: 18, fontWeight: '700' },
   profileSubtitle: { fontSize: 14, marginTop: 2 },
   premiumCard: { borderRadius: radii.lg, padding: spacing.md, marginBottom: spacing.md },
-  premiumTitle: { color: '#fff', fontWeight: '700', fontSize: 16, marginBottom: 4 },
-  premiumBody: { color: '#B9BCC9', fontSize: 13.5, lineHeight: 19, marginBottom: spacing.sm },
+  premiumTitle: { fontWeight: '700', fontSize: 16, marginBottom: 4 },
+  premiumBody: { fontSize: 13.5, lineHeight: 19, marginBottom: spacing.sm, opacity: 0.82 },
   upgradeButton: { alignSelf: 'flex-start', borderRadius: radii.pill, paddingVertical: 8, paddingHorizontal: 18 },
-  upgradeButtonText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  upgradeButtonText: { fontWeight: '700', fontSize: 13 },
   rowTitle: { fontSize: 15, fontWeight: '600' },
   rowSubtitle: { fontSize: 13.5, marginTop: 4 },
   toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

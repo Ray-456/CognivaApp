@@ -19,7 +19,9 @@ export default function ChildSwitcher() {
         style={[styles.trigger, { backgroundColor: colors.surface, borderColor: colors.border }]}
       >
         <Text style={[styles.label, { color: colors.inkFaint }]}>VIEWING</Text>
-        <Text style={[styles.name, { color: colors.ink }]}>{selectedChild?.name ?? 'Choose child'}⌄</Text>
+        <Text numberOfLines={1} ellipsizeMode="tail" style={[styles.name, { color: colors.ink }]}>
+          {selectedChild?.name ?? 'Choose child'}⌄
+        </Text>
       </TouchableOpacity>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>

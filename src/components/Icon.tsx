@@ -29,6 +29,7 @@ import { msAdd as msAddRounded } from '@material-symbols-react-native/rounded-40
 import { msHome as msHomeRounded } from '@material-symbols-react-native/rounded-400/msHome';
 import { msSettings as msSettingsRounded } from '@material-symbols-react-native/rounded-400/msSettings';
 import { msAdd as msAddSharp } from '@material-symbols-react-native/sharp-400/msAdd';
+import { useTheme } from '../theme/colors';
 
 export type IconName =
   | 'home' | 'community' | 'book' | 'lightning' | 'chart' | 'chat' | 'gear'
@@ -111,6 +112,7 @@ export default function Icon({
   opticalSize: _opticalSize,
   style,
 }: IconProps) {
+  const { colors } = useTheme();
   const symbolStyle: MaterialSymbolStyle = style === 'rounded' || style === 'sharp' ? style : 'outlined';
   const layoutStyle = typeof style === 'string' ? undefined : style;
   const isFilled = fill === true || fill === 1 || name === 'heartFilled';
@@ -124,7 +126,7 @@ export default function Icon({
   // On web platforms, render SVG directly since react-native-svg's SvgXml is unavailable
   if (typeof document !== 'undefined') {
     const svgWithFill = definition.xml
-      .replace(/<path /g, `<path fill="${color ?? '#000000'}" `)
+      .replace(/<path /g, `<path fill="${color ?? colors.ink}" `)
       .replace(/<svg/, `<svg style="width: 100%; height: 100%; object-fit: contain;" preserveAspectRatio="xMidYMid meet"`);
     return React.createElement('div', {
       style: {

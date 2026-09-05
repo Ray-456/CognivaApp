@@ -128,7 +128,7 @@ export default function KnowledgeHubScreen({ navigation }: any) {
           {categories.map((c) => (
             <TouchableOpacity key={c} onPress={() => setActive(c)}>
               <View style={[styles.catChip, { backgroundColor: colors.surface, borderColor: colors.border }, active === c && { backgroundColor: colors.ink, borderColor: colors.ink }]}> 
-                <Text style={[styles.catText, { color: colors.inkSoft }, active === c && styles.catTextActive]}>{c}</Text>
+                <Text style={[styles.catText, { color: colors.inkSoft }, active === c && { color: colors.surface }]}>{c}</Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -137,9 +137,9 @@ export default function KnowledgeHubScreen({ navigation }: any) {
         {/* Featured guide */}
         <View style={[styles.featured, { backgroundColor: colors.ink }]}> 
           <Chip label="FEATURED" tone="primary" />
-          <Text style={styles.featuredTitle}>Understanding Your Child's Evaluation Report</Text>
-          <Text style={styles.featuredBody}>A plain-language walkthrough of what those clinical terms actually mean.</Text>
-          <Text style={styles.featuredMeta}>10 min read</Text>
+          <Text style={[styles.featuredTitle, { color: colors.bg }]}>Understanding Your Child's Evaluation Report</Text>
+          <Text style={[styles.featuredBody, { color: colors.bg }]}>A plain-language walkthrough of what those clinical terms actually mean.</Text>
+          <Text style={[styles.featuredMeta, { color: colors.bg }]}>10 min read</Text>
         </View>
 
         {visible.map((a) => (
@@ -172,11 +172,10 @@ const styles = StyleSheet.create({
   catChip: { paddingVertical: 7, paddingHorizontal: 14, borderRadius: radii.pill, borderWidth: 1 },
   catChipActive: { borderColor: 'transparent' },
   catText: { fontSize: 13, fontWeight: '600' },
-  catTextActive: { color: '#fff' },
   featured: { borderRadius: radii.lg, padding: spacing.lg, marginBottom: spacing.md },
-  featuredTitle: { color: '#fff', fontSize: 18, fontWeight: '700', marginTop: 10, marginBottom: 6 },
-  featuredBody: { color: '#C7CAD6', fontSize: 14, lineHeight: 20, marginBottom: 10 },
-  featuredMeta: { color: '#8B90A3', fontSize: 12, fontWeight: '600' },
+  featuredTitle: { fontSize: 18, fontWeight: '700', marginTop: 10, marginBottom: 6 },
+  featuredBody: { fontSize: 14, lineHeight: 20, marginBottom: 10, opacity: 0.78 },
+  featuredMeta: { fontSize: 12, fontWeight: '600', opacity: 0.65 },
   articleCard: { flexDirection: 'row', alignItems: 'center' },
   thumb: { width: 48, height: 48, borderRadius: radii.md, alignItems: 'center', justifyContent: 'center' },
   articleTitle: { fontSize: 15, fontWeight: '700', marginTop: 6, marginBottom: 4, lineHeight: 20 },

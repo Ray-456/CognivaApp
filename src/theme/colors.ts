@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useMemo, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type AppTheme = {
   bg: string;
@@ -21,40 +22,40 @@ export type AppTheme = {
 // One confident accent (indigo, drawn from the logo) instead of five
 // competing colors. Teal and coral survive only as small, purposeful accents.
 export const lightColors: AppTheme = {
-  bg: '#F7F7FB',
+  bg: '#F3F5F9',
   surface: '#FFFFFF',
-  ink: '#14181F',
-  inkSoft: '#6B7280',
-  inkFaint: '#9CA3AF',
+  ink: '#172033',
+  inkSoft: '#4B5565',
+  inkFaint: '#667085',
 
-  primary: '#5B4FE0',
-  primarySoft: '#EEECFC',
-  teal: '#2F6F63',
-  tealSoft: '#E4F0EC',
-  coral: '#E4572E',
-  coralSoft: '#FCE7E0',
+  primary: '#4C3FD6',
+  primarySoft: '#E5E2FF',
+  teal: '#0F766E',
+  tealSoft: '#D8F3EE',
+  coral: '#C2410C',
+  coralSoft: '#FFEEE8',
 
-  border: '#E8E9EE',
-  divider: '#EFEFF3',
-  shadow: 'rgba(20,24,31,0.06)',
+  border: '#D5D9E2',
+  divider: '#E5E7EB',
+  shadow: 'rgba(23,32,51,0.10)',
 };
 
 export const darkColors: AppTheme = {
-  bg: '#0F172A',
-  surface: '#111C32',
+  bg: '#0B1220',
+  surface: '#151F33',
   ink: '#F8FAFC',
-  inkSoft: '#CBD5E1',
-  inkFaint: '#94A3B8',
+  inkSoft: '#D3DCEB',
+  inkFaint: '#AAB8CC',
 
-  primary: '#8B7CFF',
-  primarySoft: '#1E2A5A',
-  teal: '#4FD1C5',
-  tealSoft: '#173B39',
-  coral: '#FB923C',
-  coralSoft: '#4A2A16',
+  primary: '#6B5BDB',
+  primarySoft: '#2C285A',
+  teal: '#5EEAD4',
+  tealSoft: '#123F3D',
+  coral: '#FF9A76',
+  coralSoft: '#4A261D',
 
-  border: '#243447',
-  divider: '#1F2B3D',
+  border: '#334155',
+  divider: '#263248',
   shadow: 'rgba(2,6,23,0.4)',
 };
 
@@ -62,6 +63,8 @@ export const colors = lightColors;
 
 export const spacing = { xs: 6, sm: 12, md: 20, lg: 28, xl: 44 };
 export const radii = { sm: 10, md: 16, lg: 22, pill: 100 };
+
+const THEME_STORAGE_KEY = 'cogniva.darkMode';
 
 export const createTypography = (themeColors: AppTheme) => ({
   display: { fontSize: 26, fontWeight: '700' as const, color: themeColors.ink, letterSpacing: -0.3 },
@@ -90,11 +93,27 @@ const ThemeContext = createContext<ThemeContextValue>({
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [isDark, setIsDark] = useState(false);
+
+  React.useEffect(() => {
+    AsyncStorage.getItem(THEME_STORAGE_KEY).then((savedTheme) => {
+      if (savedTheme !== null) setIsDark(savedTheme === 'true');
+    });
+  }, []);
+
   const colors = useMemo(() => (isDark ? darkColors : lightColors), [isDark]);
   const typography = useMemo(() => createTypography(colors), [colors]);
 
-  const toggleTheme = () => setIsDark((prev) => !prev);
-  const setTheme = (value: boolean) => setIsDark(value);
+  const toggleTheme = () => {
+    setIsDark((prev) => {
+      const next = !prev;
+      AsyncStorage.setItem(THEME_STORAGE_KEY, String(next));
+      return next;
+    });
+  };
+  const setTheme = (value: boolean) => {
+    setIsDark(value);
+    AsyncStorage.setItem(THEME_STORAGE_KEY, String(value));
+  };
 
   const value = useMemo(() => ({ isDark, colors, typography, toggleTheme, setTheme }), [isDark, colors, typography]);
 

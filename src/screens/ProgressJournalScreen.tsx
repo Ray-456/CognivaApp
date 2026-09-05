@@ -142,7 +142,7 @@ export default function ProgressJournalScreen() {
         <View style={styles.headerRow}>
           <Text style={typography.display}>Journal</Text>
           <TouchableOpacity style={[styles.addButton, { backgroundColor: colors.ink }]} onPress={() => setShowForm((s) => !s)}>
-            <Text style={styles.addButtonText}>{showForm ? 'Cancel' : '+ Log entry'}</Text>
+            <Text style={[styles.addButtonText, { color: colors.bg }]}>{showForm ? 'Cancel' : '+ Log entry'}</Text>
           </TouchableOpacity>
         </View>
         <Text style={[typography.body, { marginBottom: spacing.md }]}>Track wins and challenges over time.</Text>
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardTitle: { fontSize: 16, fontWeight: '700', marginBottom: spacing.sm },
   addButton: { borderRadius: radii.pill, paddingVertical: 8, paddingHorizontal: 16 },
-  addButtonText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  addButtonText: { fontWeight: '700', fontSize: 13 },
   statRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
   statBox: { flex: 1, borderRadius: radii.lg, borderWidth: 1, padding: spacing.md },
   statNumber: { fontSize: 24, fontWeight: '700', marginBottom: 4 },

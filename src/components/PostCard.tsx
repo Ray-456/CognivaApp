@@ -98,7 +98,7 @@ export default function PostCard({
               <Avatar initials={c.authorName.slice(0, 2).toUpperCase()} tone="neutral" photoURL={c.authorPhotoURL} />
               <View style={{ marginLeft: spacing.sm, flex: 1 }}>
                 <Text style={[styles.previewName, { color: colors.ink }]}>{c.authorName}</Text>
-                <Text style={[styles.previewText, { color: colors.inkSoft }]}>{c.text}</Text>
+                <Text style={[styles.previewText, { color: colors.ink }]}>{c.text}</Text>
               </View>
             </View>
           ))}
