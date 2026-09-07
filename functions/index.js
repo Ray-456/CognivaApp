@@ -22,6 +22,33 @@ Rules you always follow:
 - If a message suggests a child or parent may be in danger or crisis, say so
   plainly and direct them to emergency services or a crisis line.`;
 
+exports.findUserByEmail = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'You must be signed in.');
+  }
+  const email = String(request.data?.email ?? '').trim().toLowerCase();
+  if (!email) {
+    throw new HttpsError('invalid-argument', 'An email address is required.');
+  }
+
+  const snapshot = await admin.firestore().collection('users').where('email', '==', email).limit(1).get();
+  if (snapshot.empty) {
+    return { found: false };
+  }
+
+  const doc = snapshot.docs[0];
+  const data = doc.data();
+  // Only return the minimal fields needed to show an invite confirmation —
+  // never leak full profile data through this lookup.
+  return {
+    found: true,
+    uid: doc.id,
+    name: data.name ?? '',
+    role: data.role ?? '',
+    photoURL: data.photoURL ?? null,
+  };
+});
+
 exports.chatWithAssistant = onCall({ secrets: [OPENAI_API_KEY] }, async (request) => {
   if (!request.auth) throw new HttpsError('unauthenticated', 'You must be signed in to use the assistant.');
   const messages = request.data?.messages;

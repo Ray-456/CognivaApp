@@ -3,20 +3,34 @@ import { getAuth as getFirebaseAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getFunctions } from 'firebase/functions';
 
-const firebaseApiKey = (process.env as Record<string, string | undefined>).EXPO_PUBLIC_FIREBASE_API_KEY;
+const env = (process.env as Record<string, string | undefined>);
 
-if (!firebaseApiKey) {
-  throw new Error('Missing EXPO_PUBLIC_FIREBASE_API_KEY. Add it to your local .env file.');
+const requiredEnv = {
+  apiKey: env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  databaseURL: env.EXPO_PUBLIC_FIREBASE_DATABASE_URL,
+  projectId: env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: env.EXPO_PUBLIC_FIREBASE_APP_ID,
+} as const;
+
+const missing = Object.entries(requiredEnv)
+  .filter(([, value]) => !value)
+  .map(([key]) => `EXPO_PUBLIC_FIREBASE_${key}`);
+
+if (missing.length) {
+  throw new Error(`Missing Firebase environment variables: ${missing.join(', ')}. Add them to your local .env file.`);
 }
 
 const firebaseConfig = {
-  apiKey: firebaseApiKey,
-  authDomain: "cogniva-001.firebaseapp.com",
-  databaseURL: "https://cogniva-001-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "cogniva-001",
-  storageBucket: "cogniva-001.firebasestorage.app",
-  messagingSenderId: "71189706367",
-  appId: "1:71189706367:web:a85182182117e6d906bbb714a"
+  apiKey: requiredEnv.apiKey!,
+  authDomain: requiredEnv.authDomain!,
+  databaseURL: requiredEnv.databaseURL!,
+  projectId: requiredEnv.projectId!,
+  storageBucket: requiredEnv.storageBucket!,
+  messagingSenderId: requiredEnv.messagingSenderId!,
+  appId: requiredEnv.appId!,
 };
 
 // initialize app

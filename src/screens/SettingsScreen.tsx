@@ -8,7 +8,8 @@ import Icon from '../components/Icon';
 import { spacing, radii, useTheme } from '../theme/colors';
 import { useAuth } from '../firebase/AuthContext';
 
-const rows = ['Child profiles', 'Parent wellbeing', 'Notifications', 'Privacy & data'];
+const parentRows = ['Child profiles', 'Care Team', 'Parent wellbeing', 'Notifications', 'Privacy & data'];
+const professionalRows = ['Notifications', 'Privacy & data'];
 
 export default function SettingsScreen({ navigation }: any) {
   const { colors, isDark, toggleTheme } = useTheme();
@@ -83,12 +84,13 @@ export default function SettingsScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
 
-        {rows.map((r) => (
+        {(profile?.role === 'Parent' ? parentRows : professionalRows).map((r) => (
           <TouchableOpacity
             key={r}
             onPress={() => {
               if (r === 'Child profiles') navigation.navigate('ManageChildren');
               if (r === 'Parent wellbeing') navigation.navigate('Wellbeing');
+              if (r === 'Care Team') navigation.navigate('CareTeam');
             }}
           >
             <Card>

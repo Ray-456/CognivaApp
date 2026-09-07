@@ -2,21 +2,56 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // True if the signed-in professional has an approved connection to this
+    // specific child, under this specific parent (userId).
+    function isApprovedProfessionalFor(userId, childId) {
+      let teamDoc = get(/databases/$(database)/documents/users/$(userId)/careTeam/$(request.auth.uid));
+      return request.auth != null
+        && teamDoc.data.status == 'approved'
+        && childId in teamDoc.data.childIds;
+    }
+
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
       allow create: if request.auth != null && request.auth.uid == userId;
       allow update: if request.auth != null && request.auth.uid == userId;
       allow delete: if false;
 
+      // Care team: parent owns and manages requests; the professional named
+      // in the doc ID can read their own invite and accept/decline it, but
+      // cannot touch anything else (childIds, etc. stay parent-controlled).
+      match /careTeam/{professionalId} {
+        allow read: if request.auth != null && (request.auth.uid == userId || request.auth.uid == professionalId);
+        allow create, delete: if request.auth != null && request.auth.uid == userId;
+        allow update: if request.auth != null && (
+          request.auth.uid == userId ||
+          (
+            request.auth.uid == professionalId &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) &&
+            request.resource.data.status in ['approved', 'declined']
+          )
+        );
+      }
+
       match /children/{childId} {
         allow read, create, update, delete: if request.auth != null && request.auth.uid == userId;
 
+        // Routines/strategies for this child. Parent has full control;
+        // an approved professional can also create/edit items (that's the
+        // whole point of the connection), but not delete the child itself.
+        match /toolkitItems/{itemId} {
+          allow read: if request.auth != null && (request.auth.uid == userId || isApprovedProfessionalFor(userId, childId));
+          allow create, update, delete: if request.auth != null && (request.auth.uid == userId || isApprovedProfessionalFor(userId, childId));
+        }
+
         match /toolkitProgress/{dateKey} {
-          allow read, write: if request.auth != null && request.auth.uid == userId;
+          allow read: if request.auth != null && (request.auth.uid == userId || isApprovedProfessionalFor(userId, childId));
+          allow write: if request.auth != null && request.auth.uid == userId;
         }
 
         match /journalEntries/{entryId} {
-          allow read, write: if request.auth != null && request.auth.uid == userId;
+          allow read: if request.auth != null && (request.auth.uid == userId || isApprovedProfessionalFor(userId, childId));
+          allow write: if request.auth != null && request.auth.uid == userId;
         }
       }
 
