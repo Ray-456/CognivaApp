@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, SafeAreaView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, SafeAreaView, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, limit } from 'firebase/firestore';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
@@ -37,13 +37,18 @@ export default function ProgressJournalScreen() {
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
-    if (!user || !selectedChild) return;
+    if (!user || !selectedChild) { setLoading(false); return; }
+    setLoading(true);
+    setLoadError(false);
     const q = query(collection(db, 'users', user.uid, 'children', selectedChild.id, 'journalEntries'), orderBy('createdAt', 'desc'), limit(60));
     const unsubscribe = onSnapshot(q, (snap) => {
       setEntries(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
-    });
+      setLoading(false);
+    }, () => { setLoadError(true); setLoading(false); });
     return unsubscribe;
   }, [user, selectedChild]);
 
@@ -85,6 +90,7 @@ export default function ProgressJournalScreen() {
       setMood(null);
       setNote('');
       setShowForm(false);
+      Alert.alert('Entry saved', `Your note was added to ${selectedChild.name}'s journal.`);
     } catch (err: any) {
       Alert.alert('Something went wrong', err.message ?? 'Please try again.');
     } finally {
@@ -147,6 +153,10 @@ export default function ProgressJournalScreen() {
         </View>
         <Text style={[typography.body, { marginBottom: spacing.md }]}>Track wins and challenges over time.</Text>
 
+        {!selectedChild && <Text style={[styles.stateText, { color: colors.inkSoft }]}>Add a child profile to start a journal.</Text>}
+        {loading && <View style={styles.state}><ActivityIndicator color={colors.primary} /><Text style={[styles.stateText, { color: colors.inkSoft }]}>Loading journal…</Text></View>}
+        {loadError && <View style={styles.state}><Text style={[styles.stateTitle, { color: colors.ink }]}>Couldn’t load the journal</Text><Text style={[styles.stateText, { color: colors.inkSoft }]}>Check your connection and try again.</Text></View>}
+
         {showForm && (
           <Card>
             <Text style={[styles.cardTitle, { color: colors.ink }]}>How's today gone?</Text>
@@ -154,6 +164,9 @@ export default function ProgressJournalScreen() {
               {MOODS.map((m) => (
                 <TouchableOpacity
                   key={m.value}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Mood ${m.value} out of 5`}
+                  accessibilityState={{ selected: mood === m.value }}
                   onPress={() => setMood(m.value)}
                   style={[
                     styles.moodButton,
@@ -218,7 +231,8 @@ export default function ProgressJournalScreen() {
           </TouchableOpacity>
         </Card>
 
-        {entries.map((e) => (
+        {!loading && !loadError && selectedChild && entries.length === 0 && <Text style={[styles.stateText, { color: colors.inkFaint }]}>No entries yet. Log your first mood above.</Text>}
+        {!loading && !loadError && entries.map((e) => (
           <Card key={e.id}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
               <Text style={{ fontSize: 18, marginRight: 8 }}>{MOODS.find((m) => m.value === e.mood)?.emoji}</Text>
@@ -255,4 +269,7 @@ const styles = StyleSheet.create({
   chartBarWrap: { alignItems: 'center', flex: 1 },
   chartBar: { width: 18, borderRadius: 6, marginBottom: 6 },
   chartLabel: { fontSize: 11, fontWeight: '600' },
+  state: { alignItems: 'center', paddingVertical: spacing.md },
+  stateTitle: { fontSize: 16, fontWeight: '700', marginBottom: spacing.xs },
+  stateText: { textAlign: 'center', lineHeight: 20, marginBottom: spacing.md },
 });

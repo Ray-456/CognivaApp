@@ -33,6 +33,8 @@ export default function ChildSwitcher() {
               return (
                 <TouchableOpacity
                   key={child.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Switch to ${child.name}`}
                   onPress={async () => {
                     await selectChild(child.id);
                     setOpen(false);

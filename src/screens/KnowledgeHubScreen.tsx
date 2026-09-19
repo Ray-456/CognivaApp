@@ -98,18 +98,23 @@ export interface ExpandedState {
 
 export default function KnowledgeHubScreen({ navigation }: any) {
   const [active, setActive] = useState('All');
+  const [search, setSearch] = useState('');
   const { colors, typography } = useTheme();
   const { selectedChild } = useChild();
   const visible = useMemo(() => {
     const filtered = active === 'All' ? articles : articles.filter((a) => a.category === active);
-    if (!selectedChild || active !== 'All') return filtered;
+    const query = search.trim().toLowerCase();
+    const searched = query
+      ? filtered.filter((article) => `${article.title} ${article.category} ${article.body}`.toLowerCase().includes(query))
+      : filtered;
+    if (!selectedChild || active !== 'All') return searched;
     const conditions = selectedChild.conditions.map((condition) => condition.toLowerCase());
-    return filtered.slice().sort((a, b) => {
+    return searched.slice().sort((a, b) => {
       const aMatches = conditions.includes(a.category.toLowerCase());
       const bMatches = conditions.includes(b.category.toLowerCase());
       return Number(bMatches) - Number(aMatches);
     });
-  }, [active, selectedChild]);
+  }, [active, search, selectedChild]);
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.bg }]}> 
@@ -121,7 +126,20 @@ export default function KnowledgeHubScreen({ navigation }: any) {
 
         <View style={[styles.searchBar, { backgroundColor: colors.surface, borderColor: colors.border }]}> 
           <Icon name="search" size={16} color={colors.inkFaint} />
-          <TextInput placeholder="Search guides, conditions, topics" placeholderTextColor={colors.inkFaint} style={[styles.searchInput, { color: colors.ink }]} />
+          <TextInput
+            accessibilityLabel="Search knowledge guides"
+            placeholder="Search guides, conditions, topics"
+            placeholderTextColor={colors.inkFaint}
+            style={[styles.searchInput, { color: colors.ink }]}
+            value={search}
+            onChangeText={setSearch}
+            returnKeyType="search"
+          />
+          {!!search && (
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Clear guide search" onPress={() => setSearch('')}>
+              <Text style={{ color: colors.inkSoft, fontWeight: '700' }}>×</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, marginBottom: spacing.md }}>
@@ -157,6 +175,12 @@ export default function KnowledgeHubScreen({ navigation }: any) {
             </Card>
           </TouchableOpacity>
         ))}
+        {visible.length === 0 && (
+          <View style={styles.emptyState}>
+            <Text style={[styles.emptyTitle, { color: colors.ink }]}>No guides found</Text>
+            <Text style={[typography.body, { color: colors.inkSoft, textAlign: 'center' }]}>Try another search term or choose a different category.</Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -179,4 +203,6 @@ const styles = StyleSheet.create({
   articleCard: { flexDirection: 'row', alignItems: 'center' },
   thumb: { width: 48, height: 48, borderRadius: radii.md, alignItems: 'center', justifyContent: 'center' },
   articleTitle: { fontSize: 15, fontWeight: '700', marginTop: 6, marginBottom: 4, lineHeight: 20 },
+  emptyState: { alignItems: 'center', paddingVertical: spacing.xl, paddingHorizontal: spacing.md },
+  emptyTitle: { fontSize: 17, fontWeight: '700', marginBottom: spacing.xs },
 });

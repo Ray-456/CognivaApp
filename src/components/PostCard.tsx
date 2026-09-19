@@ -75,18 +75,18 @@ export default function PostCard({
       <Text style={[styles.postText, { color: colors.ink }]}>{post.text}</Text>
 
       <View style={[styles.postActions, { borderTopColor: colors.divider }]}>
-        <TouchableOpacity style={styles.actionRow} onPress={() => onToggleLike(post)}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={liked ? `Unlike post by ${post.authorName}` : `Like post by ${post.authorName}`} accessibilityState={{ selected: liked }} style={styles.actionRow} onPress={() => onToggleLike(post)}>
           <Icon name={liked ? 'heartFilled' : 'heartOutline'} size={17} color={liked ? colors.coral : colors.inkSoft} />
           <Text style={[styles.actionText, { color: liked ? colors.coral : colors.inkSoft }]}>{post.likeCount}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionRow} onPress={() => onOpenComments(post.id)}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Open comments for post by ${post.authorName}`} style={styles.actionRow} onPress={() => onOpenComments(post.id)}>
           <Icon name="comment" size={17} color={colors.inkSoft} />
           <Text style={[styles.actionText, { color: colors.inkSoft }]}>{post.commentCount}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionRow} onPress={comingSoon}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Photo attachment unavailable" style={styles.actionRow} onPress={comingSoon}>
           <Icon name="camera" size={17} color={colors.inkSoft} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionRow} onPress={comingSoon}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Video attachment unavailable" style={styles.actionRow} onPress={comingSoon}>
           <Icon name="video" size={17} color={colors.inkSoft} />
         </TouchableOpacity>
       </View>

@@ -8,6 +8,7 @@ import { isValidEmail } from '../utils/validation';
 
 export default function LoginScreen({ navigation }: any) {
   const { logIn } = useAuth();
+  const { resetPassword } = useAuth();
   const { colors } = useTheme();
   const { showError } = useAppError();
   const { promptGoogleSignIn, requestReady } = useGoogleSignIn();
@@ -34,6 +35,21 @@ export default function LoginScreen({ navigation }: any) {
       Alert.alert(normalized.title, normalized.message);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email.trim() || !isValidEmail(email)) {
+      showError({ title: 'Enter your email first', message: 'We need your account email to send a reset link.', severity: 'warning' });
+      return;
+    }
+    try {
+      await resetPassword(email);
+      Alert.alert('Reset email sent', 'Check your inbox for instructions to create a new password.');
+    } catch (err: any) {
+      const normalized = normalizeAppError(err, 'Could not send reset email');
+      showError(normalized);
+      Alert.alert(normalized.title, normalized.message);
     }
   };
 
@@ -69,6 +85,10 @@ export default function LoginScreen({ navigation }: any) {
 
         <TouchableOpacity style={[styles.primaryButton, { backgroundColor: colors.primary }]} onPress={handleLogin} disabled={submitting}>
           <Text style={styles.primaryButtonText}>{submitting ? 'Logging in…' : 'Log In'}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Reset password" onPress={handleForgotPassword} disabled={submitting}>
+          <Text style={[styles.forgotText, { color: colors.primary }]}>Forgot password?</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
@@ -109,6 +129,7 @@ const styles = StyleSheet.create({
   primaryButton: { borderRadius: radii.pill, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.sm, marginBottom: spacing.md },
   primaryButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
   linkText: { textAlign: 'center', fontSize: 14 },
+  forgotText: { textAlign: 'center', fontSize: 14, fontWeight: '700', marginBottom: spacing.md },
   dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: spacing.lg, gap: 10 },
   dividerLine: { flex: 1, height: 1 },
   dividerText: { fontSize: 12.5, fontWeight: '600' },

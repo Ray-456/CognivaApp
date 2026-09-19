@@ -7,6 +7,7 @@ import {
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   sendEmailVerification,
+  sendPasswordResetEmail,
   reload,
   User,
 } from 'firebase/auth';
@@ -29,6 +30,7 @@ type AuthContextValue = {
   loading: boolean;
   emailVerified: boolean;
   resendVerificationEmail: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   refreshVerificationStatus: () => Promise<void>;
   hasChildProfile: boolean;
   markHasChildProfile: () => void;
@@ -120,6 +122,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (auth.currentUser) await sendEmailVerification(auth.currentUser);
   };
 
+  const resetPassword = async (email: string) => {
+    await sendPasswordResetEmail(auth, email.trim());
+  };
+
   const refreshVerificationStatus = async () => {
     if (!auth.currentUser) return;
     await reload(auth.currentUser);
@@ -155,7 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        user, profile, loading, emailVerified, resendVerificationEmail, refreshVerificationStatus,
+        user, profile, loading, emailVerified, resendVerificationEmail, resetPassword, refreshVerificationStatus,
         hasChildProfile, markHasChildProfile, updateProfilePhoto, signUp, logIn, logOut,
         signInWithGoogleIdToken, finishProfileSetup,
       }}

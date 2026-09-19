@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, Alert, ActivityIndicator } from 'react-native';
 import { addDoc, collection, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useAuth } from '../firebase/AuthContext';
@@ -70,7 +70,13 @@ export default function AddChildScreen({ navigation, route }: any) {
     }
   };
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.screen, { backgroundColor: colors.bg }]}>
+        <View style={styles.loadingState}><ActivityIndicator color={colors.primary} /><Text style={[styles.loadingText, { color: colors.inkSoft }]}>Loading profile…</Text></View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.bg }]}>
@@ -145,4 +151,6 @@ const styles = StyleSheet.create({
   conditionText: { fontSize: 13, fontWeight: '600' },
   primaryButton: { borderRadius: radii.pill, paddingVertical: spacing.md, alignItems: 'center' },
   primaryButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  loadingState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  loadingText: { fontSize: 14 },
 });

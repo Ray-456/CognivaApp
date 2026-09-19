@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, SafeAreaView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, FlatList, StyleSheet, SafeAreaView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { collection, query, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useAuth } from '../firebase/AuthContext';
@@ -14,15 +14,22 @@ export default function ManageChildrenScreen({ navigation }: any) {
   const { user } = useAuth();
   const { colors } = useTheme();
   const [children, setChildren] = useState<Child[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     if (!user) return;
+    setLoading(true);
+    setLoadError(false);
     const q = query(collection(db, 'users', user.uid, 'children'));
     const unsubscribe = onSnapshot(q, (snap) => {
       setChildren(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
+      setLoading(false);
     }, (error) => {
       console.error('Unable to load child profiles.', error);
       setChildren([]);
+      setLoadError(true);
+      setLoading(false);
     });
     return unsubscribe;
   }, [user]);
@@ -80,9 +87,13 @@ export default function ManageChildrenScreen({ navigation }: any) {
             </TouchableOpacity>
           </Card>
         )}
-        ListEmptyComponent={
-          <Text style={[styles.emptyText, { color: colors.inkFaint }]}>No child profiles yet — tap + Add to create one.</Text>
-        }
+        ListEmptyComponent={loading ? (
+          <View style={styles.state}><ActivityIndicator color={colors.primary} /><Text style={[styles.stateText, { color: colors.inkSoft }]}>Loading child profiles…</Text></View>
+        ) : loadError ? (
+          <View style={styles.state}><Text style={[styles.stateTitle, { color: colors.ink }]}>Couldn’t load profiles</Text><Text style={[styles.stateText, { color: colors.inkSoft }]}>Check your connection and try again.</Text></View>
+        ) : (
+          <View style={styles.state}><Text style={[styles.stateTitle, { color: colors.ink }]}>No child profiles yet</Text><Text style={[styles.stateText, { color: colors.inkSoft }]}>Tap Add to create the first profile.</Text></View>
+        )}
       />
     </SafeAreaView>
   );
@@ -100,5 +111,7 @@ const styles = StyleSheet.create({
   childAge: { fontSize: 13 },
   deleteButton: { paddingVertical: 2, paddingHorizontal: 4 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  emptyText: { textAlign: 'center', marginTop: spacing.xl },
+  state: { alignItems: 'center', marginTop: spacing.xl, paddingHorizontal: spacing.lg },
+  stateTitle: { textAlign: 'center', fontSize: 16, fontWeight: '700', marginBottom: spacing.xs },
+  stateText: { textAlign: 'center', lineHeight: 20 },
 });

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, SafeAreaView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, FlatList, StyleSheet, SafeAreaView, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
 import {
   collection, query, orderBy, onSnapshot, addDoc, serverTimestamp,
   doc, setDoc, deleteDoc, getDoc, increment, updateDoc,
@@ -21,15 +21,20 @@ export default function CommunityScreen({ navigation }: any) {
   const [draft, setDraft] = useState('');
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [posting, setPosting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   // Live-subscribe to the global posts feed, newest first.
   useEffect(() => {
     const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
     const unsubscribe = onSnapshot(q, (snap) => {
       setPosts(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
+      setLoading(false);
     }, (error) => {
       console.error('Unable to load community posts.', error);
       setPosts([]);
+      setLoadError(true);
+      setLoading(false);
     });
     return unsubscribe;
   }, []);
@@ -134,10 +139,10 @@ export default function CommunityScreen({ navigation }: any) {
             />
             <View style={styles.composerRow}>
               <View style={styles.mediaRow}>
-                <TouchableOpacity style={styles.mediaButton} onPress={() => Alert.alert('Coming soon', 'Photo attachments are on the way.')}>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add photo attachment" style={styles.mediaButton} onPress={() => Alert.alert('Coming soon', 'Photo attachments are on the way.')}>
                   <Icon name="camera" size={18} color={colors.inkSoft} />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.mediaButton} onPress={() => Alert.alert('Coming soon', 'Video attachments are on the way.')}>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add video attachment" style={styles.mediaButton} onPress={() => Alert.alert('Coming soon', 'Video attachments are on the way.')}>
                   <Icon name="video" size={18} color={colors.inkSoft} />
                 </TouchableOpacity>
               </View>
@@ -155,7 +160,13 @@ export default function CommunityScreen({ navigation }: any) {
             onOpenComments={(postId) => navigation.navigate('PostComments', { postId })}
           />
         )}
-        ListEmptyComponent={<Text style={[styles.emptyText, { color: colors.inkFaint }]}>No posts yet — be the first to share something.</Text>}
+        ListEmptyComponent={loading ? (
+          <View style={styles.state}><ActivityIndicator color={colors.primary} /><Text style={[styles.stateText, { color: colors.inkSoft }]}>Loading community…</Text></View>
+        ) : loadError ? (
+          <View style={styles.state}><Text style={[styles.stateTitle, { color: colors.ink }]}>Couldn’t load the community</Text><Text style={[styles.stateText, { color: colors.inkSoft }]}>Check your connection and try again.</Text></View>
+        ) : (
+          <Text style={[styles.emptyText, { color: colors.inkFaint }]}>No posts yet — be the first to share something.</Text>
+        )}
       />
     </SafeAreaView>
   );
@@ -177,4 +188,7 @@ const styles = StyleSheet.create({
   postButton: { borderRadius: radii.pill, paddingVertical: 8, paddingHorizontal: 18 },
   postButtonText: { color: '#fff', fontWeight: '700', fontSize: 13 },
   emptyText: { textAlign: 'center', marginTop: spacing.xl },
+  state: { alignItems: 'center', marginTop: spacing.xl, paddingHorizontal: spacing.lg },
+  stateTitle: { textAlign: 'center', fontSize: 16, fontWeight: '700', marginBottom: spacing.xs },
+  stateText: { textAlign: 'center', lineHeight: 20 },
 });

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, SafeAreaView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { doc, onSnapshot, collection, query, orderBy } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useAuth } from '../firebase/AuthContext';
@@ -39,13 +39,18 @@ export default function DailyToolkitScreen({ navigation }: any) {
   const { selectedChild } = useChild();
   const [completedSteps, setCompletedSteps] = useState<Record<string, number[]>>({});
   const [customItems, setCustomItems] = useState<ToolItem[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
-    if (!user || !selectedChild) return;
+    if (!user || !selectedChild) { setLoading(false); return; }
+    setLoading(true);
+    setLoadError(false);
     const ref = doc(db, 'users', user.uid, 'children', selectedChild.id, 'toolkitProgress', todayKey());
     const unsubscribe = onSnapshot(ref, (snap) => {
       setCompletedSteps(snap.exists() ? (snap.data().completedSteps ?? {}) : {});
-    });
+      setLoading(false);
+    }, () => { setLoadError(true); setLoading(false); });
     return unsubscribe;
   }, [user, selectedChild]);
 
@@ -54,7 +59,7 @@ export default function DailyToolkitScreen({ navigation }: any) {
     const q = query(collection(db, 'users', user.uid, 'children', selectedChild.id, 'toolkitItems'), orderBy('createdAt', 'asc'));
     const unsubscribe = onSnapshot(q, (snap) => {
       setCustomItems(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as ToolItem[]);
-    });
+    }, () => { setLoadError(true); setLoading(false); });
     return unsubscribe;
   }, [user, selectedChild]);
 
@@ -71,7 +76,11 @@ export default function DailyToolkitScreen({ navigation }: any) {
         </View>
         <Text style={[typography.body, { marginBottom: spacing.md }]}>Routines and strategies you can use today.</Text>
 
-        {tools.map((t) => {
+        {!selectedChild && <Text style={[styles.stateText, { color: colors.inkSoft }]}>Add a child profile to see their toolkit.</Text>}
+        {loading && <View style={styles.state}><ActivityIndicator color={colors.primary} /><Text style={[styles.stateText, { color: colors.inkSoft }]}>Loading toolkit…</Text></View>}
+        {loadError && <View style={styles.state}><Text style={[styles.stateTitle, { color: colors.ink }]}>Couldn’t load the toolkit</Text><Text style={[styles.stateText, { color: colors.inkSoft }]}>Check your connection and try again.</Text></View>}
+
+        {!loading && !loadError && selectedChild && tools.map((t) => {
           const stepCount = Math.max(t.steps?.length ?? 0, 1);
           const doneCount = (completedSteps[t.id] ?? []).length;
           const fullyDone = doneCount >= stepCount;
@@ -109,4 +118,7 @@ const styles = StyleSheet.create({
   addButtonText: { color: '#fff', fontWeight: '700', fontSize: 13 },
   iconChip: { width: 44, height: 44, borderRadius: radii.md, alignItems: 'center', justifyContent: 'center' },
   cardTitle: { fontSize: 16, fontWeight: '700', marginTop: 6, marginBottom: 2 },
+  state: { alignItems: 'center', paddingVertical: spacing.md },
+  stateTitle: { fontSize: 16, fontWeight: '700', marginBottom: spacing.xs },
+  stateText: { textAlign: 'center', lineHeight: 20 },
 });
