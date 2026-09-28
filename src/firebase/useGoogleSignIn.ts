@@ -1,7 +1,12 @@
 import { useEffect } from 'react';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
-import { GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID, GOOGLE_ANDROID_CLIENT_ID } from './googleAuthConfig';
+import {
+  GOOGLE_WEB_CLIENT_ID,
+  GOOGLE_IOS_CLIENT_ID,
+  GOOGLE_ANDROID_CLIENT_ID,
+  googleSignInConfigured,
+} from './googleAuthConfig';
 import { useAuth } from './AuthContext';
 import { normalizeAppError, useAppError } from '../components/AppErrorBanner';
 
@@ -37,9 +42,20 @@ export function useGoogleSignIn() {
     }
   }, [response, showError, signInWithGoogleIdToken]);
 
-  const promptGoogleSignIn = () => promptAsync().catch((error) => {
-    showError(normalizeAppError(error, 'Google sign-in failed'));
-  });
+  const promptGoogleSignIn = () => {
+    if (!googleSignInConfigured) {
+      showError({
+        title: 'Google sign-in is not configured',
+        message: 'Add the Google OAuth client IDs to your environment configuration first.',
+        severity: 'warning',
+      });
+      return;
+    }
 
-  return { promptGoogleSignIn, requestReady: !!request };
+    promptAsync().catch((error) => {
+      showError(normalizeAppError(error, 'Google sign-in failed'));
+    });
+  };
+
+  return { promptGoogleSignIn, requestReady: googleSignInConfigured && !!request };
 }
